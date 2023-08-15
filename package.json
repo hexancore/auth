@@ -1,0 +1,11 @@
+{
+  "name": "@hexancore/auth-keycloak",
+  "packageManager": "yarn@3.6.1",
+  "private": true,
+  "author": {
+    "name": "Andrzej Wasiak",
+    "email": "contact@andrzejwasiak.pl",
+    "url": "https://andrzejwasiak.pl"
+  },
+  "license": "MIT"
+}
