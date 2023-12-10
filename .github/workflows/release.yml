@@ -1,0 +1,83 @@
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseType:
+        description: 'Release type (one of): patch, minor, major'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ env.HEXANCORE_BOT_TOKEN }}
+        env:
+          HEXANCORE_BOT_TOKEN: ${{ secrets.HEXANCORE_BOT_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version: 20.x
+          #cache: yarn
+          #cache-dependency-path: yarn.lock
+
+      - name: Install dependencies
+        run: |
+          yarn install --immutable
+
+      # DOCKER UP
+      - name: docker-compose up
+        run: make up
+
+      - name: Test
+        run: yarn test
+
+      # DOCKER DOWN
+      - name: docker-compose down
+        run: make down
+
+      # Bump version
+      - name: Bump package version
+        run: |
+          yarn version $RELEASE_TYPE
+          echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+          echo "NEW_VERSION=$(jq -r '.version' < package.json)" >> $GITHUB_ENV
+        env:
+          RELEASE_TYPE: ${{ inputs.releaseType }}
+
+      # Publish package
+      - name: Publish
+        run: |
+          echo -e "\nnpmAuthToken: '${{ env.NODE_AUTH_TOKEN }}'" >> ./.yarnrc.yml
+          echo 'Publishing ${{ env.NEW_VERSION }}'
+          yarn npm publish --access public --tag ${{ env.RELEASE_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Update CHANGELOG.md
+        uses: 'zen8sol/update-changelog-action@0.1.3'
+        with:
+          newVersion: '${{ env.NEW_VERSION }}'
+
+      # Commit
+      - name: Commit CHANGELOG.md and package.json changes and create tag
+        run: |
+          echo "Committing ${{ env.NEW_VERSION }}"
+          # git config --global user.email "153127894+hexancore-bot@users.noreply.github.com"
+          # git config --global user.name "Hexancore Bot"
+          # git add "package.json"
+          # git add "CHANGELOG.md"
+          # git commit -m "chore: release ${{ env.NEW_VERSION }}"
+          # git tag -m 'new version' ${{ env.NEW_VERSION }}
+          # git push --follow-tags

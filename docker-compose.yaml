@@ -1,0 +1,12 @@
+version: '3.6'
+services:
+  redis:
+    image: mararok/test-redis-cluster:7.2
+    container_name: ${PROJECT}-redis
+    restart: always
+    environment:
+      - REDIS_CLUSTER_ANNOUNCE_PORT=${REDIS_HOST_PORT}
+    ports:
+      - ${REDIS_HOST_PORT}:6379
+    volumes:
+      - ./tmp/redis:/bitnami/redis/data
