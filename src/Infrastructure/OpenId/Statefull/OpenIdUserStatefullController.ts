@@ -97,16 +97,17 @@ export class OpenIdUserStatefullController {
       new RawJwt(tokenSet.refresh_token, this.ct.now.plus(Duration.ofSeconds(DEFAULT_REFRESH_TOKEN_MAX_AGE))),
     );
 
-    const user = new BasicSessionUser(tokenSet.claims().sub, []);
-
-    if (req.session) {
-      req.session.data.auth = auth;
-      req.session.data.user = user;
-      return OKA(true);
-    } else {
-      const sessionData = new BasicSessionData(auth, user);
-      return this.sessionService.create(req, sessionData);
-    }
+    const claims = tokenSet.claims();
+    return BasicSessionUser.c({userId: claims.sub}).onOkA((user) => {
+      if (req.session) {
+        req.session.data.auth = auth;
+        req.session.data.user = user;
+        return OKA(true);
+      } else {
+        const sessionData = new BasicSessionData(auth, user);
+        return this.sessionService.create(req, sessionData);
+      }
+    });
   }
 
   /**
