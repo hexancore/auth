@@ -1,20 +1,22 @@
-import { DateTime, Email, OK, R, Result } from '@hexancore/common';
+import { OK, R, Result } from '@hexancore/common';
 import { SessionData } from './SessionData';
 import { RawJwtSet } from '../../Jwt/RawJwtSet';
+import { UserId } from '@/Domain';
+import { AccountId } from '@/Domain/Account/AccountId';
+
+export const BasicSessionUserCreateFromPlainError = 'core.auth.session.data.basic_user.create_from_plain';
 
 export class BasicSessionUser {
-  public constructor(public readonly id: string, public readonly roles: number[]) {}
+  public constructor(public readonly id: UserId, public accountId?: AccountId) {}
 
   public static c(plain: Record<string, any>): R<BasicSessionUser> {
-    const id = String(plain?.id ?? '');
-    const roles = Array.isArray(plain?.roles) ? plain.roles : [];
-
-    return OK(
-      new BasicSessionUser(
-        id,
-        roles.filter((v) => Number.isInteger(v)),
-      ),
-    );
+    return Result.all(
+      {
+        userId: UserId.c(plain?.id),
+        accountId: plain?.accountId > 0 ? AccountId.c(plain?.accountId) : OK(null),
+      },
+      BasicSessionUserCreateFromPlainError,
+    ).map(({ userId, accountId }) => new BasicSessionUser(userId, accountId));
   }
 }
 

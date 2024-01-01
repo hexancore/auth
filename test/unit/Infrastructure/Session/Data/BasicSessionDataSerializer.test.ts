@@ -2,7 +2,8 @@
  * @group unit
  */
 
-import { BasicSessionData, BasicSessionDataCreateFromPlainError, BasicSessionDataSerializer, BasicSessionUser, RawJwt, RawJwtSet } from '@';
+import { BasicSessionData, BasicSessionDataSerializer, BasicSessionUser, RawJwt, RawJwtSet, UserId } from '@';
+import { AccountId } from '@/Domain/Account/AccountId';
 import { SessionDataSerializerErrors } from '@/Infrastructure/Session/Data/SessionDataSerializer';
 import { DateTime } from '@hexancore/common';
 
@@ -17,25 +18,13 @@ describe(BasicSessionDataSerializer.constructor.name, () => {
     test('should return serialized', async () => {
       const data = new BasicSessionData(
         new RawJwtSet(new RawJwt('test_access', DateTime.cs('2023-11-01T10:00:00')), new RawJwt('test_refresh', DateTime.cs('2023-11-01T11:00:00'))),
-        new BasicSessionUser('test_user_id', [1]),
+        new BasicSessionUser(UserId.cs('test_user_id'),AccountId.cs("10")),
       );
       const current = serializer.serialize(data);
 
       expect(current.v).toEqual({
-        auth: {
-          access: {
-            value: 'test_access',
-            expireAt: DateTime.cs('2023-11-01T10:00:00'),
-          },
-          refresh: {
-            value: 'test_refresh',
-            expireAt: DateTime.cs('2023-11-01T11:00:00'),
-          },
-        },
-        user: {
-          id: 'test_user_id',
-          roles: [1],
-        },
+        auth: new RawJwtSet(new RawJwt('test_access', DateTime.cs('2023-11-01T10:00:00')), new RawJwt('test_refresh', DateTime.cs('2023-11-01T11:00:00'))),
+        user: new BasicSessionUser(UserId.cs('test_user_id'),AccountId.cs("10")),
       });
     });
   });
@@ -55,7 +44,7 @@ describe(BasicSessionDataSerializer.constructor.name, () => {
         },
         user: {
           id: 'test_user_id',
-          roles: [1],
+          accountId: "10",
         },
       };
 
@@ -63,7 +52,7 @@ describe(BasicSessionDataSerializer.constructor.name, () => {
 
       const expected = new BasicSessionData(
         new RawJwtSet(new RawJwt('test_access', DateTime.cs('2023-11-01T10:00:00')), new RawJwt('test_refresh', DateTime.cs('2023-11-01T11:00:00'))),
-        new BasicSessionUser('test_user_id', [1]),
+        new BasicSessionUser(UserId.cs('test_user_id'),AccountId.cs("10")),
       );
       expect(current.v).toEqual(expected);
     });
@@ -81,7 +70,7 @@ describe(BasicSessionDataSerializer.constructor.name, () => {
         },
         user: {
           id: 'test_user_id',
-          roles: [1],
+          accountId: "10"
         },
       };
 
