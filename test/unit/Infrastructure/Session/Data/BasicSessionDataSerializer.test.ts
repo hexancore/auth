@@ -2,10 +2,9 @@
  * @group unit
  */
 
-import { BasicSessionData, BasicSessionDataSerializer, BasicSessionUser, RawJwt, RawJwtSet, UserId } from '@';
-import { AccountId } from '@/Domain/Account/AccountId';
+import { BasicSessionData, BasicSessionDataSerializer, BasicSessionUser, RawJwt, RawJwtSet } from '@';
 import { SessionDataSerializerErrors } from '@/Infrastructure/Session/Data/SessionDataSerializer';
-import { DateTime } from '@hexancore/common';
+import { DateTime, AccountId, UserId } from '@hexancore/common';
 
 describe(BasicSessionDataSerializer.constructor.name, () => {
   let serializer: BasicSessionDataSerializer;
