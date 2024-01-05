@@ -1,8 +1,6 @@
-import { OK, R, Result } from '@hexancore/common';
-import { SessionData } from './SessionData';
+import { AccountId, OK, R, Result, UserId } from '@hexancore/common';
 import { RawJwtSet } from '../../Jwt/RawJwtSet';
-import { UserId } from '@/Domain';
-import { AccountId } from '@/Domain/Account/AccountId';
+import { SessionData } from './SessionData';
 
 export const BasicSessionUserCreateFromPlainError = 'core.auth.session.data.basic_user.create_from_plain';
 
