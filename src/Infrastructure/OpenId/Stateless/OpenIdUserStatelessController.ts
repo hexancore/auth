@@ -1,6 +1,6 @@
 // auth/auth.controller.ts
 import { Controller, Get, Inject, Res, Req, Post, Body } from '@nestjs/common';
-import { OK, ERR, R, AR, P, Logger, AppErrorCode, getLogger, OKA } from '@hexancore/common';
+import { OK, ERR, R, AR, P, Logger, AppErrorCode, getLogger, OKA, ARW } from '@hexancore/common';
 import { ApiBadRequestResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { CookieSerializeOptions } from '@fastify/cookie';
 
@@ -37,10 +37,10 @@ export class OpenIdUserStatelessController {
   @Get('auth/login')
   @ApiBadRequestResponse()
   public login(): AR<RedirectResult> {
-    return this.getAppMeta().map((appMeta) => {
+    return this.getAppMeta().onOk((appMeta) => {
       const redirectUri = this.createRedirectLoginCallbackUri();
       const authorizationUrl = this.client.authorizationUrl({
-        scope: appMeta.loginScope.join(" "),
+        scope: appMeta.loginScope.join(' '),
         redirect_uri: redirectUri,
       });
       return RedirectResult.found(authorizationUrl);
@@ -58,26 +58,26 @@ export class OpenIdUserStatelessController {
   @ApiUnauthorizedResponse()
   @ApiBadRequestResponse()
   public loginCallback(@Req() req: FRequest, @Res() res: FResponse): AR<RedirectResult> {
-    return this.getAppMeta().onOk(async (appMeta) => {
-      try {
-        const params = this.client.callbackParams(req.url);
-        const originRedirectUri = this.createRedirectLoginCallbackUri();
-        const tokenSet = await this.client.callback(originRedirectUri, params);
+    return this.getAppMeta().onOk((appMeta) => {
+      const params = this.client.callbackParams(req.url);
+      const originRedirectUri = this.createRedirectLoginCallbackUri();
+      return ARW(this.client.callback(originRedirectUri, params))
+        .onOk((tokenSet) => {
+          const maxAge = this.options.cookie.refreshToken.maxAge ?? DEFAULT_REFRESH_TOKEN_MAX_AGE;
+          this.setCookie(res, this.options.cookie.refreshToken.name, tokenSet.refresh_token, { maxAge });
 
-        const maxAge = this.options.cookie.refreshToken.maxAge ?? DEFAULT_REFRESH_TOKEN_MAX_AGE;
-        this.setCookie(res, this.options.cookie.refreshToken.name, tokenSet.refresh_token, { maxAge });
+          const accessTokenCookieValue = tokenSet.expires_at + ' ' + tokenSet.access_token;
+          this.setCookie(res, this.options.cookie.firstAccessToken.name, accessTokenCookieValue, {
+            maxAge: this.options.cookie.firstAccessToken.maxAge ?? 60,
+          });
 
-        const accessTokenCookieValue = tokenSet.expires_at + ' ' + tokenSet.access_token;
-        this.setCookie(res, this.options.cookie.firstAccessToken.name, accessTokenCookieValue, {
-          maxAge: this.options.cookie.firstAccessToken.maxAge ?? 60,
+          const redirectUri = new URL(appMeta.redirect.baseUri).toString();
+          return OK(RedirectResult.found(redirectUri));
+        })
+        .onErr(() => {
+          const redirectUri = new URL('?errorType=user.infra.auth.openid.login', appMeta.redirect.errorUri).toString();
+          return RedirectResult.found(redirectUri);
         });
-
-        const redirectUri = new URL(appMeta.redirect.baseUri).toString();
-        return OK(RedirectResult.found(redirectUri));
-      } catch (e) {
-        const redirectUri = new URL('?errorType=user.infra.auth.openid.login', appMeta.redirect.errorUri).toString();
-        return OK(RedirectResult.found(redirectUri));
-      }
     });
   }
 
@@ -108,10 +108,10 @@ export class OpenIdUserStatelessController {
   @ApiUnauthorizedResponse()
   public refresh(@Req() req: FRequest): AR<{ accessToken: string; expiresAt: number }> {
     const cookieName = this.options.cookie.refreshToken.name;
-    return this.unsignCookie(req, cookieName).onOkA((cookieValue) =>
-      P(this.client.refresh(cookieValue))
-        .map((tokenSet) => ({ accessToken: tokenSet.access_token, expiresAt: tokenSet.expires_at }))
-        .mapErr(() => ({ type: 'user.infra.auth.openid.refresh_token_invalid', code: AppErrorCode.UNAUTHORIZED })),
+    return this.unsignCookie(req, cookieName).onOk((cookieValue) =>
+      ARW(this.client.refresh(cookieValue))
+        .onOk((tokenSet) => ({ accessToken: tokenSet.access_token, expiresAt: tokenSet.expires_at }))
+        .onErr(() => ERR({ type: 'user.infra.auth.openid.refresh_token_invalid', code: AppErrorCode.UNAUTHORIZED })),
     );
   }
 
@@ -140,7 +140,7 @@ export class OpenIdUserStatelessController {
   @Get('auth/logout-callback')
   @ApiUnauthorizedResponse()
   public logoutCallback(): AR<RedirectResult> {
-    return this.getAppMeta().map((appMeta) => {
+    return this.getAppMeta().onOk((appMeta) => {
       const uri = appMeta.redirect.logoutUri;
       return RedirectResult.found(uri);
     });

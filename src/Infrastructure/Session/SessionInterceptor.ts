@@ -46,8 +46,8 @@ export class SessionInterceptor implements HttpGroupableInterceptor<any, any> {
           }
         });
       } else {
-        return data.onOkA((v) => {
-        return this.modifyResponse(session, args).map(() => v);
+        return data.onOk((v) => {
+        return this.modifyResponse(session, args).onOk(() => v);
 
       });
       }
@@ -59,7 +59,7 @@ export class SessionInterceptor implements HttpGroupableInterceptor<any, any> {
           return this.modifyResponse(session, args).onOk(() => ERR(e));
         }
       })
-      .onOk((v) => this.modifyResponse(session, args).map(() => v));
+      .onOk((v) => this.modifyResponse(session, args).onOk(() => v));
   }
 
   public getName(): string {

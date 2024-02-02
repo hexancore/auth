@@ -7,7 +7,7 @@ import { Cluster } from 'ioredis';
 import { RedisSessionStore } from '@/Infrastructure/Session/Store/RedisSessionStore';
 import { BasicSessionData, BasicSessionUser } from '@/Infrastructure/Session/Data/BasicSessionData';
 import { BasicSessionDataSerializer } from '@/Infrastructure/Session/Data/BasicSessionDataSerializer';
-import { APP_REDIS_TOKEN, AppConfigModule, AppRedisModule } from '@hexancore/core';
+import { APP_REDIS_TOKEN, HcAppConfigModule, HcAppRedisModule, HcModule } from '@hexancore/core';
 import { Session } from '@/Infrastructure/Session/Session';
 import { DateTime, OK } from '@hexancore/common';
 import { RawJwt, RawJwtSet } from '@';
@@ -47,7 +47,7 @@ describe('RedisSessionStore', () => {
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
-      imports: [AppConfigModule, AppRedisModule],
+      imports: [HcModule.forRoot({ cls: false, redis: true, accountContext: { useCls: false } })],
       providers: [
         {
           provide: RedisSessionStore,

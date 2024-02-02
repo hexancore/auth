@@ -14,7 +14,7 @@ export class BasicSessionUser {
         accountId: plain?.accountId > 0 ? AccountId.c(plain?.accountId) : OK(null),
       },
       BasicSessionUserCreateFromPlainError,
-    ).map(({ userId, accountId }) => new BasicSessionUser(userId, accountId));
+    ).onOk(({ userId, accountId }) => new BasicSessionUser(userId, accountId));
   }
 }
 
@@ -33,7 +33,7 @@ export class BasicSessionData extends SessionData {
         user: BasicSessionUser.c(plain?.user),
       },
       BasicSessionDataCreateFromPlainError,
-    ).map((v) => {
+    ).onOk((v) => {
       return new BasicSessionData(v.auth, v.user);
     });
   }

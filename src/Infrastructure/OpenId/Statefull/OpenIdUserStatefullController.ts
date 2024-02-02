@@ -36,7 +36,7 @@ export class OpenIdUserStatefullController {
   @Redirect()
   @ApiBadRequestResponse()
   public login(@Query('redirect_id') redirectId?: string): AR<RedirectResult> {
-    return this.getAppMeta().map((appMeta) => {
+    return this.getAppMeta().onOk((appMeta) => {
       const redirectUri = this.getRedirectLoginCallbackUri(redirectId);
       const authorizationUrl = this.client.authorizationUrl({
         scope: appMeta.loginScope.join(' '),
@@ -57,7 +57,7 @@ export class OpenIdUserStatefullController {
   @ApiUnauthorizedResponse()
   @ApiBadRequestResponse()
   public loginCallback(@Req() req: FReqWithSession<BasicSessionData>, @Query('redirect_id') redirectId?: string): AR<RedirectResult> {
-    return this.getAppMeta().onOk(async (appMeta) => {
+    return this.getAppMeta().onOk((appMeta) => {
       return this.callOpenIdCallback(req, redirectId)
         .onOk((tokenSet) => {
           return this.createSession(tokenSet, req).onOk(() => {
@@ -98,7 +98,7 @@ export class OpenIdUserStatefullController {
     );
 
     const claims = tokenSet.claims();
-    return BasicSessionUser.c({userId: claims.sub}).onOkA((user) => {
+    return BasicSessionUser.c({userId: claims.sub}).onOk((user) => {
       if (req.session) {
         req.session.data.auth = auth;
         req.session.data.user = user;
@@ -134,7 +134,7 @@ export class OpenIdUserStatefullController {
   @Get('protected/auth/logout-callback')
   @Redirect()
   public logoutCallback(): AR<RedirectResult> {
-    return this.getAppMeta().map((appMeta) => {
+    return this.getAppMeta().onOk((appMeta) => {
       const uri = appMeta.redirect.logoutUri;
       return RedirectResult.found(uri);
     });

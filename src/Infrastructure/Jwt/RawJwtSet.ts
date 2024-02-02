@@ -13,6 +13,6 @@ export class RawJwtSet {
         refresh: RawJwt.c(plain?.refresh ?? ''),
       },
       JwtValueSetCreateFromPlainError,
-    ).map((v) => new RawJwtSet(v.access, v.refresh));
+    ).onOk((v) => new RawJwtSet(v.access, v.refresh));
   }
 }
