@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated @hexancore/common@0.13.2
+- Updated @hexancore/core@0.13.2
+
+## [0.1.0] - 2023-12-10
+
 ### Added
 
-- inital release
+- Inital release
 
+[unreleased] https://github.com/hexancore/core/compare/0.1.0...HEAD   
+[0.1.0] https://github.com/hexancore/core/compare/0.1.0  
