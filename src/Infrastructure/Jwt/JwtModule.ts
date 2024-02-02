@@ -1,7 +1,7 @@
 import { FactoryProvider, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuardOptionsToken } from './JwtAuthGuard';
-import { AppConfigModule } from '@hexancore/core';
+import { HcAppConfigModule } from '@hexancore/core';
 
 const JwtAuthGuardOptionsProvider: FactoryProvider = {
   provide: JwtAuthGuardOptionsToken,
@@ -12,7 +12,7 @@ const JwtAuthGuardOptionsProvider: FactoryProvider = {
 };
 
 @Module({
-  imports: [AppConfigModule],
+  imports: [HcAppConfigModule],
   providers: [JwtAuthGuardOptionsProvider],
   exports: [JwtAuthGuardOptionsProvider],
 })

@@ -1,7 +1,7 @@
 import { Cluster } from 'ioredis';
 import { SessionStore } from './SessionStore';
 import { SessionData } from '../Data/SessionData';
-import { AR, DateTime, OK, P, PB } from '@hexancore/common';
+import { AR, ARW, ARWB, DateTime, OK, P, PB } from '@hexancore/common';
 import { Session } from '../Session';
 import { SessionState } from '../SessionState';
 import { SessionDataSerializer } from '../Data/SessionDataSerializer';
@@ -13,7 +13,7 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
 
   public get(id: string): AR<Session<D> | null> {
     const key = this.getKey(id);
-    return P(this.redis.hget(key, 'session')).map((v) => {
+    return ARW(this.redis.hget(key, 'session')).onOk((v) => {
       if (!v) {
         return null;
       }
@@ -40,7 +40,7 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
     };
 
     const redisCommand = this.redis.pipeline().hset(key, SESSION_FIELD, JSON.stringify(plain)).expireat(key, session.expireAt.t);
-    return PB(redisCommand.exec()).onOk(() => {
+    return ARW(redisCommand.exec()).onOk(() => {
       session.state = SessionState.ACTIVE;
       session.data.__track();
       return OK(true);
@@ -49,7 +49,7 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
 
   public delete(id: string): AR<boolean> {
     const key = this.getKey(id);
-    return PB(this.redis.del(key));
+    return ARW(this.redis.del(key)).mapToTrue();
   }
 
   protected getKey(id: string): string {

@@ -1,4 +1,4 @@
-import { OK, R} from '@hexancore/common';
+import { ERR, OK, R} from '@hexancore/common';
 import { BasicSessionData } from './BasicSessionData';
 import { SessionDataSerializer, SessionDataSerializerErrors } from './SessionDataSerializer';
 
@@ -8,6 +8,6 @@ export class BasicSessionDataSerializer implements SessionDataSerializer<BasicSe
   }
 
   public deserialize(plain: Record<string, any>): R<BasicSessionData> {
-    return BasicSessionData.c(plain).mapErr((e) => ({ type: SessionDataSerializerErrors.deserialize, code: 500, data: e.data }));
+    return BasicSessionData.c(plain).onErr((e) => (ERR({ type: SessionDataSerializerErrors.deserialize, code: 500, data: e.data })));
   }
 }

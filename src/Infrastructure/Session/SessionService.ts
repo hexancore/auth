@@ -23,7 +23,7 @@ export class SessionService<D extends SessionData> {
     const createdAt = this.ct.now;
     const expireAt = createdAt.plus(this.sessionInitialDuration);
     req.session = Session.createNew(data, createdAt, expireAt);
-    
+
     return this.store.persist(req.session).onOk(() => {
       this.logger.info('Created session', { id: req.session.id, expireAt: req.session.expireAt });
       return OK(true);
@@ -42,7 +42,7 @@ export class SessionService<D extends SessionData> {
   }
 
   public get(id: string): AR<Session<D>> {
-    return this.store.get(id).map((s) => {
+    return this.store.get(id).onOk((s) => {
       if (!s) {
         return Session.createDeleted(id);
       }
