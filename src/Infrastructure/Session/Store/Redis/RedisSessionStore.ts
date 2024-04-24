@@ -1,15 +1,21 @@
-import { Cluster } from 'ioredis';
-import { SessionStore } from './SessionStore';
-import { SessionData } from '../Data/SessionData';
-import { AR, ARW, ARWB, DateTime, OK, P, PB } from '@hexancore/common';
-import { Session } from '../Session';
-import { SessionState } from '../SessionState';
-import { SessionDataSerializer } from '../Data/SessionDataSerializer';
+import { SessionStore } from '../SessionStore';
+import { SessionData } from '../../Data/SessionData';
+import { AR, ARW, DateTime, OK } from '@hexancore/common';
+import { Session } from '../../Session';
+import { SessionState } from '../../SessionState';
+import { SessionDataSerializer } from '../../Data/SessionDataSerializer';
+import type { Redis, Cluster } from 'ioredis';
 
 const SESSION_FIELD = 'session';
 
+type RedisOrCluster = Redis | Cluster;
+
 export class RedisSessionStore<D extends SessionData> implements SessionStore<D> {
-  public constructor(protected redis: Cluster, protected serializer: SessionDataSerializer<D>, protected keyPrefix = 'core:auth:sessions:') {}
+  public constructor(
+    protected redis: RedisOrCluster,
+    protected serializer: SessionDataSerializer<D>,
+    protected keyPrefix = 'core:auth:sessions:'
+  ) { }
 
   public get(id: string): AR<Session<D> | null> {
     const key = this.getKey(id);
@@ -39,7 +45,9 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
       data: this.serializer.serialize(session.data).v,
     };
 
-    const redisCommand = this.redis.pipeline().hset(key, SESSION_FIELD, JSON.stringify(plain)).expireat(key, session.expireAt.t);
+    const redisCommand = this.redis.pipeline()
+      .hset(key, SESSION_FIELD, JSON.stringify(plain))
+      .expireat(key, session.expireAt.t);
     return ARW(redisCommand.exec()).onOk(() => {
       session.state = SessionState.ACTIVE;
       session.data.__track();

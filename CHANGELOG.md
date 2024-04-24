@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Session Redis Store now supports single and cluster mode
+- Upgrade dependencies.
+
 ## [0.1.1] - 2023-02-02
 
 ### Changed
@@ -21,5 +26,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inital release
 
 [unreleased] https://github.com/hexancore/auth/compare/0.1.1...HEAD  
-[0.1.1] https://github.com/hexancore/auth/compare/0.1.0...0.1.1   
-[0.1.0] https://github.com/hexancore/auth/releases/tag/0.1.0   
+[0.1.1] https://github.com/hexancore/auth/compare/0.1.0...0.1.1  
+[0.1.0] https://github.com/hexancore/auth/releases/tag/0.1.0

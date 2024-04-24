@@ -1,3 +1,3 @@
 export * from './SessionStore';
 export * from './MemorySessionStore';
-export * from './RedisSessionStore';
+export * from './Redis/RedisSessionStore';
