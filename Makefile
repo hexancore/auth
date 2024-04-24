@@ -1,4 +1,9 @@
-PROJECT = hexancore-auth
+PROJECT = hc-auth
+
+init_tmp:
+	mkdir -p ./tmp/redis
+	chmod 0777 -R ./tmp
+	chmod 0777 -R ./docker
 
 up:
 	docker compose -p $(PROJECT) --env-file ./docker/.env up -d --wait --wait-timeout 5

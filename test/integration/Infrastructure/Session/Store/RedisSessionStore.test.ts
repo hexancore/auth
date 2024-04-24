@@ -2,16 +2,16 @@
  * @group integration
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
-import { Cluster } from 'ioredis';
-import { RedisSessionStore } from '@/Infrastructure/Session/Store/RedisSessionStore';
-import { BasicSessionData, BasicSessionUser } from '@/Infrastructure/Session/Data/BasicSessionData';
+import { BasicSessionData } from '@/Infrastructure/Session/Data/BasicSessionData';
 import { BasicSessionDataSerializer } from '@/Infrastructure/Session/Data/BasicSessionDataSerializer';
-import { APP_REDIS_TOKEN, HcAppConfigModule, HcAppRedisModule, HcModule } from '@hexancore/core';
 import { Session } from '@/Infrastructure/Session/Session';
-import { DateTime, OK } from '@hexancore/common';
-import { RawJwt, RawJwtSet } from '@';
-import { Duration, Period } from '@js-joda/core';
+import { RedisSessionStore } from '@/Infrastructure/Session/Store/Redis/RedisSessionStore';
+import { HcAppRedisModule, APP_REDIS_TOKEN } from '@hexancore/cloud';
+import { DateTime } from '@hexancore/common';
+import { HcModule } from '@hexancore/core';
+import { Duration } from '@js-joda/core';
+import { Test, TestingModule } from '@nestjs/testing';
+import { type Redis } from 'ioredis';
 
 function createTestSessionData() {
   const data = BasicSessionData.c({
@@ -42,16 +42,16 @@ function createTestSession(ttl: Duration) {
 
 describe('RedisSessionStore', () => {
   let module: TestingModule;
-  let redis: Cluster;
+  let redis: Redis;
   let store: RedisSessionStore<BasicSessionData>;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
-      imports: [HcModule.forRoot({ cls: false, redis: true, accountContext: { useCls: false } })],
+      imports: [HcAppRedisModule, HcModule.forRoot({ cls: false, accountContext: { useCls: false } })],
       providers: [
         {
           provide: RedisSessionStore,
-          useFactory: (redis) => {
+          useFactory: (redis: Redis) => {
             const serializer = new BasicSessionDataSerializer();
             return new RedisSessionStore(redis, serializer);
           },

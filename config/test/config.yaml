@@ -1,9 +1,6 @@
 core:
   redis:
-    nodes:
-      - { host: 'localhost', port: 20010 }
-      - { host: 'localhost', port: 20010 }
-      - { host: 'localhost', port: 20010 }
-    options:
-      enableReadyCheck: false
-      keyPrefix: 'app:'
+    host: 127.0.0.1
+    port: 20010
+    enableReadyCheck: false
+    keyPrefix: 'app:'
