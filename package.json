@@ -1,7 +1,7 @@
 {
   "name": "@hexancore/auth",
   "packageManager": "yarn@4.0.2",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Andrzej Wasiak <Mararok>",
   "description": "Hexancore auth module. Supports OpenId statefull and stateless modes. Has session management",
   "keywords": [
