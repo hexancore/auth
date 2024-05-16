@@ -1,7 +1,6 @@
-import { Dto } from "@hexancore/common";
-import { AbstractEntity, Entity } from "@hexancore/core";
+import { type JsonSerialize } from "@hexancore/common";
 
-export abstract class SessionData {
+export abstract class SessionData implements JsonSerialize {
 
   /**
    * managed on infrastructure level by persistance layer like typeorm
@@ -17,19 +16,33 @@ export abstract class SessionData {
     this.__tracked = false;
   }
 
+  public abstract isAuthenticated(): boolean;
+  public get sessionGroupId(): string | null {
+    return null;
+  }
+  public abstract toJSON(): Record<string, any>;
+
+  public toLogContext(): Record<string, any> | null {
+    return null;
+  }
+
   protected proxify(): this {
     return new Proxy(this, {
       set: (target, prop: string, val) => {
-        if (target.__tracked && !['__tracked', '__modifiedProperties'].includes(prop)) {
-          if (!this.__modifiedProperties) {
-            this.__modifiedProperties = new Set();
-          }
-          target.__modifiedProperties.add(prop);
-        }
+        target.__markPropertyAsModified(prop);
         target[prop] = val;
         return true;
       },
     });
+  }
+
+  protected __markPropertyAsModified(prop: string): void {
+    if (this.__tracked && !['__tracked', '__modifiedProperties'].includes(prop)) {
+      if (!this.__modifiedProperties) {
+        this.__modifiedProperties = new Set();
+      }
+      this.__modifiedProperties.add(prop);
+    }
   }
 
   /**
@@ -43,4 +56,6 @@ export abstract class SessionData {
     this.__modifiedProperties = undefined;
     this.__tracked = true;
   }
+
+
 }

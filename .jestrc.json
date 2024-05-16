@@ -7,7 +7,8 @@
   },
   "moduleNameMapper": {
     "^@$": "<rootDir>/src",
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@testhelper/(.*)$": "<rootDir>/test/helper/$1"
   },
   "testMatch": ["<rootDir>/test/**/*.test.ts"],
   "setupFiles": [],

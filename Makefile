@@ -16,3 +16,10 @@ act:
 	chmod 0777 -R ./tmp
 	chmod 0777 -R ./docker
 	act workflow_dispatch --input releaseType=minor
+
+oidc_provider:
+	./bin/test_oidc_provider.ts
+
+oidc_app:
+	yarn build
+	APP_ENV=dev APP_ID=hc_auth_oidc_app APP_LOG_PRETTY=0 ./example/oidc/oidc_app.ts

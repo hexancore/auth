@@ -17,6 +17,7 @@
 Auth module for [Hexancore](https://hexancore.github.io/hexancore/)
 
 ## Installation
+
 ```bash
 # NPM
 npm i --save @hexancore/auth
@@ -27,7 +28,16 @@ yarn add @hexancore/auth
 
 ## Documentation
 
-Documentation(work in progress...): 
-https://hexancore.github.io/hexancore/auth
+http://localhost:5173/hexancore/guide/packages/auth
 
+## Testing
 
+### OIDC
+
+```
+make oidc_server
+
+make oidc_app
+
+https://localhost:3000/front/protected/dashboard
+```
