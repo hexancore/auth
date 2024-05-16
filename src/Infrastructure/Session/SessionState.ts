@@ -1,5 +1,6 @@
 export enum SessionState {
-  CREATED,
-  ACTIVE,
-  DELETED,
+  NEW = 'NEW',
+  ACTIVE = 'ACTIVE',
+  TO_TERMINATE = 'TO_TERMINATE',
+  TERMINATED = 'TERMINATED',
 }

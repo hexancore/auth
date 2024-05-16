@@ -1,0 +1,30 @@
+core:
+  redis:
+    host: 127.0.0.1
+    port: 20010
+    enableReadyCheck: false
+    keyPrefix: 'app:'
+  auth:
+    openid:
+      user:
+        client:
+          issuerDiscover: https://localhost:20012/oidc/.well-known/openid-configuration
+          clientId: test_client
+          defaultMaxAge: 300
+        app:
+          apiBaseUrl: https://localhost:3000
+          session:
+            lifetime: 6h
+            initialLifetime: 5m
+            cookie:
+              sameSite: lax
+          login:
+            scope:
+              - openid
+              - email
+          redirect:
+            baseUrl: https://localhost:3000/front/protected/dashboard
+            postLogoutUrl: https://localhost:3000/front/public/post-logout
+            errorUrl: https://localhost:3000/front/public/auth-error
+            loginRequest:
+              login_popup: https://localhost:3000/front/user/login-request-redirect

@@ -1,60 +1,91 @@
-import { AR, CurrentTime, ERRA, Logger, OK, OKA, getLogger } from '@hexancore/common';
-import { FReqWithSession } from './SessionInterceptor';
+import { AR, CurrentTime, Logger, OK, OKA, getLogger } from '@hexancore/common';
+import { Duration } from '@js-joda/core';
+import { SessionData } from './Data/SessionData';
 import { Session } from './Session';
 import { SessionStore } from './Store/SessionStore';
-import { SessionData } from './Data/SessionData';
-import { SessionState } from './SessionState';
-import { Duration } from '@js-joda/core';
 
 export class SessionService<D extends SessionData> {
   private sessionInitialDuration: Duration;
-  private logger: Logger;
+  private log: Logger;
 
-  public constructor(private ct: CurrentTime, private store: SessionStore<D>, initialDuration: number | string) {
-    this.sessionInitialDuration = typeof initialDuration === 'number' ? Duration.ofSeconds(initialDuration) : Duration.parse('PT' + initialDuration);
-    this.logger = getLogger('core.infra.auth.session.service');
+  public constructor(
+    private ct: CurrentTime,
+    private store: SessionStore<D>,
+    initialLifetime: number | string
+  ) {
+    this.sessionInitialDuration = Session.createDuration(initialLifetime);
+    this.log = getLogger('core.auth.infra.session.service', ['core', 'auth', 'infra', 'session']);
   }
 
-  public create(req: FReqWithSession<D>, data: D): AR<boolean> {
-    if (req.session) {
-      return ERRA('core.infra.auth.session.create_on_exists');
-    }
-
+  public create(data: D): Session<D> {
     const createdAt = this.ct.now;
     const expireAt = createdAt.plus(this.sessionInitialDuration);
-    req.session = Session.createNew(data, createdAt, expireAt);
+    const session = Session.createNew(data, createdAt, expireAt);
 
-    return this.store.persist(req.session).onOk(() => {
-      this.logger.info('Created session', { id: req.session.id, expireAt: req.session.expireAt });
-      return OK(true);
-    });
+    this.log.info('Created session', session.toLogContext());
+    return session;
   }
 
-  public persist(session: Session<D>): AR<boolean> {
-    if (session.isCreated() || (session.isActive() && session.data.__modified)) {
-      return this.store.persist(session).onOk(() => {
-        session.state = SessionState.ACTIVE;
-        return OK(true);
+  public save(session: Session<D>): AR<boolean> {
+    if (session.needSave) {
+      const isNew = session.isNew();
+      return this.store.save(session).onOk(() => {
+        if (isNew) {
+          this.log.info('Saved new session', session.toLogContext());
+        }
+        session.markAsActive();
+        session.data.__track();
+        return true;
       });
     }
 
     return OKA(true);
   }
 
-  public get(id: string): AR<Session<D>> {
+  /**
+   *  Returns session with given id from store or null when not exists
+   * @param id
+   * @returns
+   */
+  public get(id: string): AR<Session<D> | null> {
     return this.store.get(id).onOk((s) => {
       if (!s) {
-        return Session.createDeleted(id);
+        this.log.info('Session not found', { id: Session.idToLogContext(id) });
+        return null;
       }
-      s.state = SessionState.ACTIVE;
+
+      s.markAsActive();
+      s.data.__track();
       return s;
     });
   }
 
-  public delete(id: string): AR<boolean> {
-    return this.store.delete(id).onOk(() => {
-      this.logger.info('Deleted session', { id });
+  public terminate(session: string | Session<D>): AR<boolean> {
+    let groupId = null;
+    if (session instanceof Session) {
+      groupId = session.getSessionGroupId();
+      session.terminate();
+      session = session.id;
+    }
+
+    return this.store.delete(session, groupId).onOk(() => {
+      this.log.info('Terminated session', { id: Session.idToLogContext(session) });
       return OK(true);
+    });
+  }
+
+  public getInGroup(groupId: string): AR<Session<D>[]> {
+    return this.store.getInGroup(groupId);
+  }
+
+  public getIdsInGroup(groupId: string): AR<string[]> {
+    return this.store.getIdsInGroup(groupId);
+  }
+
+  public terminateGroup(groupId: string): AR<boolean> {
+    return this.store.deleteGroup(groupId).onOk(() => {
+      this.log.info('Terminated session group', { groupId });
+      return true;
     });
   }
 }
