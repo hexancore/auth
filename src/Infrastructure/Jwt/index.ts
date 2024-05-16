@@ -1,5 +1,4 @@
 export * from './JwtAuthGuard';
-export * from './JwtModule';
-export * from './RawJwt';
-export * from './RawJwtSet';
+export * from './HcJwtModule';
+export * from './Jwt';
 export * from './JwtAuthErrors';

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "Node",
     "noImplicitThis": false,
     "noImplicitAny": false,
     "importHelpers": true,
@@ -17,21 +17,42 @@
     "forceConsistentCasingInFileNames": true,
     "useDefineForClassFields": true,
     "allowJs": true,
-    "types": ["jest", "reflect-metadata", "node"],
+    "types": [
+      "jest",
+      "reflect-metadata",
+      "node"
+    ],
     "incremental": true,
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "outDir": "./lib",
     "baseUrl": "./",
     "paths": {
-      "@": ["src"],
-      "@/*": ["src/*"],
+      "@": [
+        "src"
+      ],
+      "@/*": [
+        "src/*"
+      ],
+      "@testhelper/*": [
+        "test/helper/*"
+      ]
     },
-
   },
-  "files": ["node_modules/jest-expect-message/types/index.d.ts"],
-  "include": ["src/**/*", "test/**/*"],
-  "exclude": ["node_modules", "lib"],
-
+  "files": [
+    "node_modules/jest-expect-message/types/index.d.ts"
+  ],
+  "include": [
+    "bin/**/*.ts",
+    "src/**/*.ts",
+    "test/**/*",
+    "example/oidc/oidc_app.ts"
+, "bin/test_oidc_provider.ts"  ],
+  "exclude": [
+    "node_modules",
+    "lib"
+  ],
   "typedocOptions": {
     "mode": "file",
     "out": "./docs",

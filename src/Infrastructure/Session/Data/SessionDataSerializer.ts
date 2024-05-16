@@ -8,5 +8,5 @@ export const SessionDataSerializerErrors = {
 
 export interface SessionDataSerializer<D extends SessionData> {
   serialize(data: D): R<Record<string, any>>;
-  deserialize(plain: Record<string, any>): R<D>;
+  deserialize(plain: any): R<D>;
 }

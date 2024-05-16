@@ -7,12 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Reworked OpenId.
+- Reworked Session.
+- Upgrade dependencies.
+
 ## [0.2.0] - 2024-04-24
 
 ### Changed
 
-- Session Redis Store now supports single and cluster mode
-- Upgrade dependencies.
+- Session Redis Store now supports single and cluster mode.
 
 ## [0.1.1] - 2023-02-02
 
