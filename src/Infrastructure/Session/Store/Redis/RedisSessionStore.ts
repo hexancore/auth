@@ -38,27 +38,27 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
     const plain = {
       createdAt: session.createdAt,
       expireAt: session.expireAt,
-      data: this.serializer.serialize(session.data).v,
+      data: this.serializer.serialize(session.data!).v,
     };
 
     const redisCommand = this.redis.pipeline()
       .set(key, JSON.stringify(plain))
-      .expireat(key, session.expireAt.t);
+      .expireat(key, session.expireAt!.t);
 
-    const groupId = session.data.sessionGroupId;
+    const groupId = session.data!.sessionGroupId;
     if (groupId) {
       const groupKey = this.getGroupKey(groupId);
       if (session.needRegisterInSessionGroup) {
         redisCommand.sadd(groupKey, session.id);
       }
 
-      redisCommand.expireat(key, session.expireAt.t);
+      redisCommand.expireat(key, session.expireAt!.t);
     }
 
     return this.wrapCommandResult(redisCommand.exec()).onOk(() => {
       session.state = SessionState.ACTIVE;
       session.needRegisterInSessionGroup = false;
-      session.data.__track();
+      session.data!.__track();
       return true;
     });
   }
@@ -75,7 +75,9 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
   public getInGroup(groupId: string): AR<Session<D>[]> {
     return this.getIdsInGroup(groupId).onOk((ids) => {
       return this.wrapCommandResult(this.redis.mget(ids))
-        .onOk((values) => ids.map(id => values[id] ? this.parseValue(id, values[id]) : null).filter(s => s !== null));
+        .onOk((values) =>
+          ids.map(id => values[id] ? this.parseValue(id, values[id]) : null).filter(s => s !== null) as Session<D>[]
+        );
     });
   }
 
@@ -102,8 +104,8 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
   protected parseValue(id: string, value: string): Session<D> {
     const parsed = JSON.parse(value);
     const s = new Session<D>(id, SessionState.ACTIVE);
-    s.createdAt = DateTime.c(parsed.createdAt).v;
-    s.expireAt = DateTime.c(parsed.expireAt).v;
+    s.createdAt = DateTime.c(parsed.createdAt ?? 0).v;
+    s.expireAt = DateTime.c(parsed.expireAt ?? 0).v;
     s.data = this.serializer.deserialize(parsed.data).v;
     s.data.__track();
 
@@ -111,10 +113,10 @@ export class RedisSessionStore<D extends SessionData> implements SessionStore<D>
   }
 
   protected wrapCommandResult<T>(command: Promise<T>): AR<T> {
-    return ARW(command, (e: Error) => ({
+    return ARW(command, (e) => ({
       type: RedisSessionStoreErrorType,
-      error: e,
-      message: e.message,
+      error: e as Error,
+      message: (e as Error).message,
       code: AppErrorCode.INTERNAL_ERROR,
     }));
   }

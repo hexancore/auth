@@ -34,7 +34,7 @@ export class SessionService<D extends SessionData> {
           this.log.info('Saved new session', session.toLogContext());
         }
         session.markAsActive();
-        session.data.__track();
+        session.data!.__track();
         return true;
       });
     }
@@ -55,13 +55,13 @@ export class SessionService<D extends SessionData> {
       }
 
       s.markAsActive();
-      s.data.__track();
+      s.data!.__track();
       return s;
     });
   }
 
   public terminate(session: string | Session<D>): AR<boolean> {
-    let groupId = null;
+    let groupId;
     if (session instanceof Session) {
       groupId = session.getSessionGroupId();
       session.terminate();

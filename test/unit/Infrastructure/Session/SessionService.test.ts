@@ -24,8 +24,8 @@ describe(SessionService.constructor.name, () => {
 
       const current = service.create(data);
       expect(current.data).toBe(data);
-      expect(current.createdAt.formatDateTime()).toBe('2024-05-12T10:00:00');
-      expect(current.expireAt.formatDateTime()).toBe('2024-05-12T10:10:00');
+      expect(current.createdAt!.formatDateTime()).toBe('2024-05-12T10:00:00');
+      expect(current.expireAt!.formatDateTime()).toBe('2024-05-12T10:10:00');
       expect(current.state).toBe(SessionState.NEW);
       expect(current.needRenewCookie).toBe(true);
       expect(current.needSave).toBe(true);
@@ -40,8 +40,8 @@ describe(SessionService.constructor.name, () => {
       const current = await service.save(session);
 
       expect(current).toMatchSuccessResult(true);
-      expect(session.data.__tracked).toBeTruthy();
-      expect(session.data.__modified).toBeFalsy();
+      expect(session.data!.__tracked).toBeTruthy();
+      expect(session.data!.__modified).toBeFalsy();
       expect(session.state).toBe(SessionState.ACTIVE);
       expect(session.needSave).toBe(false);
     });
@@ -50,14 +50,14 @@ describe(SessionService.constructor.name, () => {
       const data = new TestSessionData('test');
       const session = service.create(data);
       session.markAsActive();
-      session.data.__track();
+      session.data!.__track();
 
-      session.data.field = 'test_changed';
+      session.data!.field = 'test_changed';
 
       const current = await service.save(session);
 
       expect(current).toMatchSuccessResult(true);
-      expect(session.data.__modified).toBeFalsy();
+      expect(session.data!.__modified).toBeFalsy();
       expect(session.needSave).toBe(false);
     });
 
@@ -65,7 +65,7 @@ describe(SessionService.constructor.name, () => {
       const data = new TestSessionData('test');
       const session = service.create(data);
       session.markAsActive();
-      session.data.__track();
+      session.data!.__track();
 
       const current = await service.save(session);
 

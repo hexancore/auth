@@ -13,7 +13,7 @@ export class Jwt {
   public static c(plain: { value: string; expireAt: number } | string): R<Jwt> {
     if (typeof plain === 'string') {
       return this.decodeToken(plain).onOk((p) => {
-        return Jwt.c({ value: plain, expireAt: p.exp });
+        return Jwt.c({ value: plain, expireAt: p.exp ?? 0 });
       });
     }
 
@@ -30,11 +30,15 @@ export class Jwt {
     return OK(new Jwt(value, expireAtResult.v));
   }
 
+  public getPayload(): R<jose.JWTPayload> {
+    return Jwt.decodeToken(this.value);
+  }
+
   public static decodeToken(token: string): R<jose.JWTPayload> {
     try {
       return jose.decodeJwt(token);
-    } catch (error) {
-      return ERR({type: JwtDecodeError, code: 400, error});
+    } catch (e) {
+      return ERR({type: JwtDecodeError, code: 400, error: e as any});
     }
   }
 }

@@ -1,12 +1,10 @@
 import type { CookieSerializeOptions } from "@fastify/cookie";
 import { AppErrorCode, ERR, ERRA, INTERNAL_ERR, OK, OKA, getLogger, type AR, type InternalError, type Logger, type R, type StdErrors } from "@hexancore/common";
-import type { FResponse } from "@hexancore/core/.";
+import type { FResponse } from "@hexancore/core";
 import { AuthSessionErrors } from "../AuthSessionErrors";
 import { Session } from "../Session";
 import type { SessionService } from "../SessionService";
 import type { FReqWithSession } from "./types";
-
-import { Signer } from '@fastify/cookie';
 
 export interface SessionCookieOptions {
   name: string;
@@ -19,13 +17,13 @@ export interface SessionCookieOptions {
 
 export class HttpSessionService {
   private cookieName: string;
-  private cookieOptions: Omit<SessionCookieOptions, 'name'>;
+  private cookieOptions: Omit<SessionCookieOptions, 'name'> & { signed: true; };
   private log: Logger;
 
-  public constructor(options: SessionCookieOptions, private service: SessionService<any>, private cookieSigner?: Signer) {
+  public constructor(options: SessionCookieOptions, private service: SessionService<any>) {
     this.cookieName = options.name;
     const { name, ...opts } = options;
-    this.cookieOptions = opts;
+    this.cookieOptions = { ...opts, signed: true };
 
     this.log = getLogger('core.auth.infra.session.http', ['core', 'auth', 'infra', 'session']);
   }
@@ -49,30 +47,18 @@ export class HttpSessionService {
     return this.loadToRequest(req, extracted.sessionId, extracted.renewCookieValue);
   }
 
-  private extractSessionIdFromCookie(req: FReqWithSession<any>): R<{ renewCookieValue: boolean, sessionId: string } | null, AuthSessionErrors<'session_cookie_invalid'>> {
+  private extractSessionIdFromCookie(req: FReqWithSession<any>): R<{ renewCookieValue: boolean, sessionId: string; } | null, AuthSessionErrors<'session_cookie_invalid'>> {
     const cookieValue = req.cookies[this.cookieName];
     if (!cookieValue) {
       return OK(null);
     }
 
-    if (this.cookieSigner) {
-      return this.unsignCookie(cookieValue);
-    }
-
-    if (!Session.isValidId(cookieValue)) {
-      this.log.warn('invalid cookie session id', { v: cookieValue });
-      return ERR(AuthSessionErrors.session_cookie_invalid, AppErrorCode.UNAUTHORIZED);
-    }
-
-    return OK({
-      renewCookieValue: false,
-      sessionId: cookieValue
-    });
+    return this.unsignCookie(req, cookieValue);
   }
 
-  private unsignCookie(cookieValue: string): R<{ renewCookieValue: boolean, sessionId: string } | null, AuthSessionErrors<'session_cookie_invalid'>> {
+  private unsignCookie(req: FReqWithSession<any>, cookieValue: string): R<{ renewCookieValue: boolean, sessionId: string; } | null, AuthSessionErrors<'session_cookie_invalid'>> {
     try {
-      const result = this.cookieSigner.unsign(cookieValue);
+      const result = req.unsignCookie(cookieValue);
       if (!result.valid) {
         this.log.warn('cookie invalid signature', { v: cookieValue });
         return ERR(AuthSessionErrors.session_cookie_invalid, AppErrorCode.UNAUTHORIZED);
@@ -83,9 +69,9 @@ export class HttpSessionService {
         return ERR(AuthSessionErrors.session_cookie_invalid, AppErrorCode.UNAUTHORIZED);
       }
 
-      return OK({ renewCookieValue: result.renew, sessionId: result.value });
+      return OK({ renewCookieValue: result.renew, sessionId: result.value! });
     } catch (e) {
-      return INTERNAL_ERR(e);
+      return INTERNAL_ERR(e as Error);
     }
   }
 
@@ -109,7 +95,7 @@ export class HttpSessionService {
     }
 
     if (session.isToTerminate()) {
-      res.clearCookie(this.cookieName, this.cookieOptions);
+      this.clearSessionCookie(res);
       return this.service.terminate(session);
     }
 
@@ -127,15 +113,10 @@ export class HttpSessionService {
 
     const options: CookieSerializeOptions = {
       ...this.cookieOptions,
-      expires: session.expireAt.toNativeDate(),
+      expires: session.expireAt!.toNativeDate(),
     };
 
-    let cookieValue = session.id;
-    if (this.cookieSigner) {
-      cookieValue = this.cookieSigner.sign(cookieValue);
-    }
-
-    res.setCookie(this.cookieName, cookieValue, options);
+    res.setCookie(this.cookieName, session.id, options);
   }
 
   private clearSessionCookie(res: FResponse): void {

@@ -1,11 +1,12 @@
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { SessionState } from './SessionState';
 import { DateTime } from '@hexancore/common';
 import { SessionData } from './Data/SessionData';
 import { Duration } from '@js-joda/core';
 import { sha256 } from '../../Util';
 
-export const ID_SIZE = 21;
+export const SESSION_ID_LENGTH = 21;
+export const sessionIdFactory = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz', SESSION_ID_LENGTH);
 
 export interface SessionLogContext {
   id: string;
@@ -53,11 +54,11 @@ export class Session<D extends SessionData> {
   }
 
   public static genId(): string {
-    return nanoid(ID_SIZE);
+    return sessionIdFactory(SESSION_ID_LENGTH);
   }
 
   public static isValidId(id: any): boolean {
-    return id && /^[A-Za-z0-9_-]{21}$/.test(id);
+    return id && /^[A-Za-z0-9_]{21}$/.test(id);
   }
 
   public static createTerminated<D extends SessionData>(id: string): Session<D> {
@@ -77,7 +78,7 @@ export class Session<D extends SessionData> {
   }
 
   public isAuthenticated(): boolean {
-    return this.isActive() && this.data && this.data.isAuthenticated();
+    return (this.isActive() && this.data && this.data.isAuthenticated()) as boolean;
   }
 
   public getSessionGroupId(): string | null {
@@ -86,8 +87,12 @@ export class Session<D extends SessionData> {
 
   public expandLifetime(duration: number | string | Duration): void {
     duration = Session.createDuration(duration);
-    this.expireAt = this.expireAt.plus(duration);
+    this.expireAt = this.expireAt!.plus(duration);
     this.forceRenewCookie = true;
+  }
+
+  public isExpired(now: DateTime): boolean {
+    return this.expireAt!.isAfter(now);
   }
 
   public terminate(): void {
@@ -119,7 +124,7 @@ export class Session<D extends SessionData> {
   }
 
   public get needSave(): boolean {
-    return this.isNew() || (this.isActive() && this.data.__modified === true);
+    return this.isNew() || (this.isActive() && this.data!.__modified === true);
   }
 
   public get needRenewCookie(): boolean {
@@ -135,10 +140,10 @@ export class Session<D extends SessionData> {
       id: Session.idToLogContext(this.id),
       state: this.state.toString(),
       isAuthenticated: this.isAuthenticated(),
-      createdAt: this.createdAt ? this.createdAt.formatDateTime() : null,
-      expireAt: this.expireAt ? this.expireAt.formatDateTime() : null,
-      groupId: this.getSessionGroupId(),
-      data: this.data ? this.data.toLogContext() : null,
+      createdAt: this.createdAt ? this.createdAt.formatDateTime() : undefined,
+      expireAt: this.expireAt ? this.expireAt.formatDateTime() : undefined,
+      groupId: this.getSessionGroupId() ?? undefined,
+      data: this.data ? this.data.toLogContext() ?? undefined : undefined,
     };
   }
 

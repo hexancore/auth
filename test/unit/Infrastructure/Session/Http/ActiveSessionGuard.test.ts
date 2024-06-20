@@ -1,24 +1,23 @@
-
 /**
  * @group unit
  */
 
-import { AuthenticatedSessionGuard, HttpSessionService, Session, ActiveSessionGuard, SessionState } from '@';
-import { DateTime, OKA } from '@hexancore/common';
+import { HttpSessionService, Session, ActiveSessionGuard} from '@';
+import { DateTime, ERRA, INTERNAL_ERROR, OKA } from '@hexancore/common';
 import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing';
-import { mock, type M } from '@hexancore/mocker';
+import { type M, mock } from '@hexancore/mocker';
 import { UnauthorizedException } from '@nestjs/common';
 import { TestSessionData } from '@testhelper/Infrastructure/Session/TestSessionData';
 
-describe(AuthenticatedSessionGuard.constructor.name, () => {
+describe(ActiveSessionGuard.constructor.name, () => {
   let service: M<HttpSessionService>;
-  let guard: AuthenticatedSessionGuard;
+  let guard: ActiveSessionGuard;
   let context: MockHttpExecutionContext;
-  let session: Session<TestSessionData>;
+  let session: Session<any>;
 
   beforeEach(() => {
     service = mock(HttpSessionService.name);
-    guard = new AuthenticatedSessionGuard(service.i);
+    guard = new ActiveSessionGuard(service.i);
     context = ExecutionContextTestHelper.createHttp();
     session = Session.createNew(
       new TestSessionData('test'),
@@ -27,16 +26,11 @@ describe(AuthenticatedSessionGuard.constructor.name, () => {
     );
   });
 
-  afterEach(() => {
-    service.checkExpections();
-  });
-
   describe('canActivate', () => {
-    test('when session exists on request and is Authenticated, then Authorized', async () => {
+    test('when session exists on request and is Active, then Authorized', async () => {
       service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith((req) => {
         req.session = session;
         session.markAsActive();
-        session.data = new TestSessionData("test", true);
         return OKA(true) as any;
       });
 
@@ -45,28 +39,18 @@ describe(AuthenticatedSessionGuard.constructor.name, () => {
       expect(current).toBeTruthy();
     });
 
-    test('when active session exists on request and is not Authenticated, then Unauthorized', async () => {
-      service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith((req) => {
-        req.session = session;
-        session.markAsActive();
+    test('when no session on request, then Unauthorized', async () => {
+      service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith(() => {
         return OKA(true) as any;
       });
 
       expect(guard.canActivate(context)).rejects.toEqual(new UnauthorizedException());
     });
 
-    test('when session exists on request and is not active, then Unauthorized', async () => {
+    test('when session exists on request and is marked to terminate, then Unauthorized', async () => {
       service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith((req) => {
         req.session = session;
         session.markToTerminate();
-        return OKA(true);
-      });
-
-      expect(guard.canActivate(context)).rejects.toEqual(new UnauthorizedException());
-    });
-
-    test('when session not exists on request, then Unauthorized', async () => {
-      service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith(() => {
         return OKA(true) as any;
       });
 
@@ -81,6 +65,15 @@ describe(AuthenticatedSessionGuard.constructor.name, () => {
       });
 
       expect(guard.canActivate(context)).rejects.toEqual(new UnauthorizedException());
+    });
+
+    test('when loading to request error, then Unauthorized', async () => {
+      const expectedError = INTERNAL_ERROR(new Error("test"));
+      service.expects('tryLoadToRequest', context.getRequest() as any).andReturnWith(() => {
+        return ERRA(expectedError);
+      });
+
+      expect(guard.canActivate(context)).rejects.toEqual(new UnauthorizedException(expectedError));
     });
   });
 });

@@ -33,54 +33,67 @@ export class MemorySessionStore<D extends SessionData> implements SessionStore<D
   }
 
   private serialize(session: Session<D>): R<SerializedSession> {
-    return this.dataSerializer.serialize(session.data).onOk(data => {
+    return this.dataSerializer.serialize(session.data!).onOk(data => {
       return {
-        createdAt: session.createdAt,
-        expireAt: session.expireAt,
+        createdAt: session.createdAt!,
+        expireAt: session.expireAt!,
         data,
       };
     });
   }
 
   private registerInGroup(session: Session<D>): void {
-    const groupId = session.data.sessionGroupId;
+    const groupId = session.data!.sessionGroupId;
+    if (!groupId) {
+      return;
+    }
     const sessionIds = this.sessionGroups.get(groupId) ?? new Set();
     sessionIds.add(session.id);
     this.sessionGroups.set(groupId, sessionIds);
   }
 
-  public get(id: string): AR<Session<D>> {
+  public get(id: string): AR<Session<D> | null> {
     const value = this.sessions.get(id);
     if (!value) {
       return OKA(null);
     }
 
-    return this.parseValue(id, value).onOk(s => {
-      if (s.expireAt.isAfter(this.ct.now)) {
-        return this.delete(s.id, s.getSessionGroupId()).onOk(() => null);
-      }
-      return OKA(s);
-    }).onErr(e => ERRA(e));
+    return this.parseValue(id, value)
+      .onErr((e) => ERRA(e) as any)
+      .onOk(s => {
+        if (s.isExpired(this.ct.now)) {
+          return this.delete(s.id, s.getSessionGroupId()).onOk(() => null);
+        }
+        return OKA(s);
+      });
+
   }
 
   public delete(id: string, groupId?: string): AR<boolean> {
     this.sessions.delete(id);
     if (groupId) {
       const group = this.sessionGroups.get(groupId);
-      group.delete(id);
-      if (group.size === 0) {
-        this.sessionGroups.delete(groupId);
+      if (group) {
+        group.delete(id);
+        if (group.size === 0) {
+          this.sessionGroups.delete(groupId);
+        }
       }
     }
     return OKA(true);
   }
 
   public getInGroup(groupId: string): AR<Session<D>[]> {
-    return this.getIdsInGroup(groupId).onEachAsArray(id => this.get(id));
+    return this.getIdsInGroup(groupId).onEachAsArray(id => this.get(id)).onOk((sessions) => sessions.filter((s) => s !== null) as any);
   }
 
   public getIdsInGroup(groupId: string): AR<string[]> {
-    return OKA(Array.from(this.sessionGroups.get(groupId).values()));
+    const ids = this.sessionGroups.get(groupId);
+    if (!ids) {
+      return OKA([]);
+    }
+
+    return OKA(Array.from(ids.values()));
   }
 
   public deleteGroup(groupId: string): AR<boolean> {

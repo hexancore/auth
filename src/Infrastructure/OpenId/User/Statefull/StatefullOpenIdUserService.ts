@@ -64,7 +64,7 @@ export class StatefullOpenIdUserService {
     const redirectUri = this.getRedirectLogoutCallbackUrl();
     const url = this.client.endSessionUrl({
       post_logout_redirect_uri: redirectUri,
-      id_token_hint: session.data.auth.idToken.value,
+      id_token_hint: session.data!.auth!.idToken.value,
     });
 
     return url;
@@ -81,7 +81,7 @@ export class StatefullOpenIdUserService {
   }
 
   public errorUrl(redirectId: string): string {
-    let url: URL = null;
+    let url: URL;
     if (redirectId && this.options.redirect.loginRequest[redirectId]) {
       url = new URL(this.options.redirect.loginRequest[redirectId]);
       url.searchParams.set('login_request_status', 'error');
@@ -109,6 +109,6 @@ export class StatefullOpenIdUserService {
   }
 
   public getSessionLifetimeDuration(): Duration {
-    return Session.createDuration(this.options.session.lifetime);
+    return Session.createDuration(this.options.session!.lifetime);
   }
 }

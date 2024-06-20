@@ -6,7 +6,7 @@ import { Session } from '../Session';
 import type { HttpSessionService } from './HttpSessionService';
 import type { FReqWithSession } from './types';
 
-export class SessionInterceptor implements HttpGroupableInterceptor<any, any> {
+export class SessionResponseUpdaterInterceptor implements HttpGroupableInterceptor<any, any> {
 
   public constructor(private service: HttpSessionService) { }
 
@@ -31,7 +31,7 @@ export class SessionInterceptor implements HttpGroupableInterceptor<any, any> {
   }
 
   public getName(): string {
-    return 'core.auth.session';
+    return 'core.auth.session.response_updater';
   }
 
   private modifyResponse(session: Session<any>, args: HttpArgumentsHost): AR<boolean> {
