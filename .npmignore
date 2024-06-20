@@ -1,4 +1,4 @@
-test/
+/test/
 tsconfig.build.json
 tsconfig.common.json
 tsconfig.json
@@ -17,12 +17,15 @@ yarn.lock
 .eslintrc.js
 .eslintignore
 .jestrc.json
-config/
+/config/
 CONTRIBUTION.md
-tmp/
+/tmp/
 docker-compose.yaml
 docker/
 node_modules/
 Makefile
 .github/
 CHANGELOG.md
+/example/
+jest.config.ts
+/lib/Test/Infrastructure/OpenId/App

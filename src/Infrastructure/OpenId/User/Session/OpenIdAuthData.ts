@@ -62,7 +62,7 @@ export class OpenIdAuthData {
       idToken: Jwt.c(plain?.idToken ?? ''),
       accessToken: Jwt.c(plain?.accessToken ?? ''),
       refreshToken: plain?.refreshToken ? Jwt.c(plain?.refreshToken) : OK(null),
-    }, OpenIdAuthDataCreateError).onOk((v) => new OpenIdAuthData(v.userId, v.claims, v.idToken, v.accessToken, v.refreshToken));
+    }, OpenIdAuthDataCreateError).onOk((v) => new OpenIdAuthData(v.userId, v.claims, v.idToken, v.accessToken, v.refreshToken!));
   }
 
   public getClaims<T>(): T {

@@ -1,13 +1,17 @@
 {
   "compilerOptions": {
+    "strict": true,
+    "moduleResolution": "Node16",
+    "module": "Node16",
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "Node",
+    "lib": [
+      "ES2022"
+    ],
     "noImplicitThis": false,
     "noImplicitAny": false,
     "importHelpers": true,
     "declaration": true,
-    "declarationMap": true,
+    "declarationMap": false,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -15,30 +19,20 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "useDefineForClassFields": true,
+    "useDefineForClassFields": false,
     "allowJs": true,
-    "types": [
-      "jest",
-      "reflect-metadata",
-      "node"
-    ],
-    "incremental": true,
-    "lib": [
-      "ES2022"
-    ],
+    "types": ["jest", "reflect-metadata", "node"],
+    "incremental": false,
+    "resolveJsonModule": true,
     "outDir": "./lib",
     "baseUrl": "./",
     "paths": {
-      "@": [
-        "src"
-      ],
-      "@/*": [
-        "src/*"
-      ],
+      "@": ["src"],
+      "@/*": ["src/*"],
       "@testhelper/*": [
         "test/helper/*"
       ]
-    },
+    }
   },
   "files": [
     "node_modules/jest-expect-message/types/index.d.ts"
@@ -46,9 +40,7 @@
   "include": [
     "bin/**/*.ts",
     "src/**/*.ts",
-    "test/**/*",
-    "example/oidc/oidc_app.ts"
-, "bin/test_oidc_provider.ts"  ],
+    "test/**/*" ],
   "exclude": [
     "node_modules",
     "lib"

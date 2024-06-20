@@ -2,7 +2,7 @@ import { AppError, AppErrorCode, EnumErrorTypeWrapper, InjectLogger, Logger, get
 import { FRequest } from '@hexancore/core';
 import { CanActivate, ExecutionContext, Inject, UnauthorizedException } from '@nestjs/common';
 import { JWTVerifyOptions, RemoteJWKSetOptions, createRemoteJWKSet, jwtVerify } from 'jose';
-import { JOSEError } from 'jose/dist/types/util/errors';
+import { JOSEError } from 'jose/errors';
 import { JwtAuthInfraErrors } from './JwtAuthErrors';
 
 export const JwtAuthGuardOptionsToken = Symbol('JwtAuthGuardOptionsToken');
@@ -41,7 +41,7 @@ export class JwtAuthGuard implements CanActivate {
       req[REQ_JWT_PAYLOAD_KEY] = (await jwtVerify(token, this.jwks, this.options.verify)).payload;
       return true;
     } catch (e) {
-      const ei: JOSEError = e;
+      const ei: JOSEError = e as JOSEError;
       if (this.loggingIncludedVerifyErrors === undefined || this.loggingIncludedVerifyErrors.has(ei.code)) {
         this.logger.warn('jwt.verify: ' + ei.code + ' ' + ei.message);
       }

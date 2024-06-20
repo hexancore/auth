@@ -1,5 +1,5 @@
 import { CurrentTime } from "@hexancore/common";
-import { APP_REDIS_TOKEN } from "@hexancore/core";
+import { APP_REDIS_TOKEN } from "@hexancore/cloud/redis";
 import type { InjectionToken, Provider } from "@nestjs/common";
 import { type FromPlainFactory, PlainSessionDataSerializer } from "../Data";
 import { MemorySessionStore } from "./MemorySessionStore";

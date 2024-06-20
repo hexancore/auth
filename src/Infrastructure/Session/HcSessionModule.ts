@@ -1,11 +1,8 @@
-import { Signer } from '@fastify/cookie';
-import { AppErrorCode, CurrentTime, ERR, LogicError, type R } from '@hexancore/common';
+import { AppErrorCode, CurrentTime, ERR, LogicError } from '@hexancore/common';
 import { APP_ORDERED_INTERCEPTOR_GROUP_TOKEN, AppConfig, HttpOrderedInterceptorGroup } from '@hexancore/core';
-import { ConfigurableModuleBuilder, Global, MiddlewareConsumer, Module, NestModule, RequestMethod, type Provider } from '@nestjs/common';
+import { ConfigurableModuleBuilder, Global, Module, NestModule, type Provider } from '@nestjs/common';
 import Validator from 'fastest-validator';
 import { HttpSessionService } from './Http';
-import { SessionInterceptor } from './Http/SessionInterceptor';
-import { SessionMiddleware } from './Http/SessionMiddleware';
 import {
   DEFAULT_SESSION_MODULE_CONFIG_PATH,
   DEFAULT_SESSION_MODULE_EXTRAS,
@@ -17,16 +14,16 @@ import {
 } from './SessionModuleConfig';
 import { SessionService } from './SessionService';
 import { SESSION_STORE_TOKEN, type SessionStore } from './Store';
-import { AuthSessionErrors } from './AuthSessionErrors';
+import { SessionResponseUpdaterInterceptor } from './Http/SessionResponseUpdaterInterceptor';
 
 const v = new Validator();
 
 const SessionInterceptorProvider = (extras: SessionModuleExtras): Provider => ({
-  provide: SessionInterceptor,
+  provide: SessionResponseUpdaterInterceptor,
   inject: [HttpSessionService, APP_ORDERED_INTERCEPTOR_GROUP_TOKEN],
   useFactory: (service: HttpSessionService, interceptorGroup: HttpOrderedInterceptorGroup) => {
-    const interceptor = new SessionInterceptor(service);
-    interceptorGroup.add(extras.interceptorPriority, interceptor);
+    const interceptor = new SessionResponseUpdaterInterceptor(service);
+    interceptorGroup.add(extras.interceptorPriority!, interceptor);
     return interceptor;
   }
 });
@@ -37,7 +34,7 @@ const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } = new ConfigurableModule
     if (!extras.store) {
       throw new LogicError('HcSessionModule.options.store is not set');
     }
-
+    definition.providers = definition.providers ?? [];
     definition.providers.push(extras.store);
     definition.providers.push(SessionInterceptorProvider(extras));
     return definition;
@@ -71,36 +68,12 @@ const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } = new ConfigurableModule
     {
       provide: HttpSessionService,
       inject: [SESSION_MODULE_CONFIG_TOKEN, SessionService, AppConfig],
-      useFactory: (config: SessionModuleConfig, sessionService: SessionService<any>, appConfig: AppConfig) => {
-
-        let signer: Signer;
-        if (config.cookie.sign.enabled) {
-          const secretGetResult: R<string> = appConfig.secrets.get(config.cookie.sign.secretPath);
-          secretGetResult.panicIfError();
-          const signSecret = secretGetResult.v.split('\n');
-
-          const check = v.compile({
-            $$root: true,
-            type: 'array',
-            items: { type: 'string', min: 26 },
-            unique: true
-          });
-
-          const checkResult = check(signSecret);
-          if (checkResult !== true) {
-            ERR(AuthSessionErrors.config_cookie_sign_secret_invalid, AppErrorCode.INTERNAL_ERROR, checkResult).panicIfError();
-          }
-
-          signer = new Signer(signSecret);
-        }
-        return new HttpSessionService(config.cookie, sessionService, signer);
+      useFactory: (config: SessionModuleConfig, sessionService: SessionService<any>) => {
+        return new HttpSessionService(config.cookie, sessionService);
       }
     }
   ],
   exports: [SessionService, HttpSessionService],
 })
 export class HcSessionModule extends ConfigurableModuleClass implements NestModule {
-  public configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(SessionMiddleware).forRoutes({ path: '(.*)/protected/(.*)', method: RequestMethod.ALL });
-  }
 }

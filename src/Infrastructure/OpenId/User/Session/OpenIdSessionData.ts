@@ -13,11 +13,11 @@ export class OpenIdUserSessionData extends SessionData {
     /**
      * Sets when user start login interaction
      */
-    public authRequest: OpenIdAuthRequestData = null,
+    public authRequest: OpenIdAuthRequestData | null = null,
     /**
      * Sets when user successfull authenticated
      */
-    public auth: OpenIdAuthData = null,
+    public auth: OpenIdAuthData | null = null,
     metadataEntries: [string, any][] = [],
   ) {
     super();
@@ -44,8 +44,8 @@ export class OpenIdUserSessionData extends SessionData {
     this.auth = auth;
   }
 
-  public getClaim<T>(claim: string, defaultValue: T = null): T | null {
-    return this.isAuthenticated() ? this.auth.claims[claim] : defaultValue;
+  public getClaim<T>(claim: string, defaultValue: T | null = null): T | null {
+    return this.isAuthenticated() ? this.auth!.claims[claim] : defaultValue;
   }
 
   public getMetadata<T>(key: string): T | null {
@@ -63,7 +63,7 @@ export class OpenIdUserSessionData extends SessionData {
   }
 
   public get userId(): UserId | null {
-    return this.isAuthenticated() ? this.auth.userId : null;
+    return this.isAuthenticated() ? this.auth!.userId : null;
   }
 
   public get sessionGroupId(): string | null {
@@ -71,7 +71,7 @@ export class OpenIdUserSessionData extends SessionData {
   }
 
   public get userIdHash(): string | null {
-    return this.isAuthenticated() ? sha256(this.userId.toString()) : null;
+    return this.isAuthenticated() ? sha256(this.userId!.toString()) : null;
   }
 
   public isAuthenticated(): boolean {

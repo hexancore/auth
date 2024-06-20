@@ -5,7 +5,7 @@
 import { RedisSessionStoreProvider, SESSION_STORE_TOKEN } from '@';
 import { Session } from '@/Infrastructure/Session/Session';
 import { RedisSessionStore } from '@/Infrastructure/Session/Store/Redis/RedisSessionStore';
-import { APP_REDIS_TOKEN, HcAppRedisModule } from '@hexancore/cloud';
+import { APP_REDIS_TOKEN, HcAppRedisModule } from '@hexancore/cloud/redis';
 import { DateTime, LogicError } from '@hexancore/common';
 import { HcModule } from '@hexancore/core';
 import { Duration } from '@js-joda/core';
@@ -28,9 +28,9 @@ function createTestSession(ttl: Duration) {
 }
 
 describe('RedisSessionStore', () => {
-  let module: TestingModule;
-  let redis: Redis;
-  let store: RedisSessionStore<TestSessionData>;
+  let module!: TestingModule | null;
+  let redis!: Redis| null;
+  let store!: RedisSessionStore<TestSessionData>;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -64,7 +64,7 @@ describe('RedisSessionStore', () => {
       const current = await store.get(session.id);
       session.forceRenewCookie = false;
       expect(current.v).toEqual(session);
-      const currentTTL = await redis.ttl('core:auth:sessions:' + session.id);
+      const currentTTL = await redis!.ttl('core:auth:sessions:' + session.id);
       expect(currentTTL).toBeLessThanOrEqual(sessionTTL.seconds());
     });
 
@@ -97,7 +97,7 @@ describe('RedisSessionStore', () => {
       const deleteResult = await store.delete(session.id);
 
       expect(deleteResult.isSuccess()).toBeTruthy();
-      const current = await redis.exists('core:auth:sessions:' + session.id);
+      const current = await redis!.exists('core:auth:sessions:' + session.id);
       expect(current).toBeFalsy();
     });
   });

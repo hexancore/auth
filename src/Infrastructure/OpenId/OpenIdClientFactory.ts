@@ -28,7 +28,7 @@ export class OpenIdClientFactory {
     return RetryHelper.retryAsync(() => this.tryDiscover(options), {
       id: `OpenIdClientFactory[${options.clientId}]`,
       maxAttempts: retryOptions.maxAttempts,
-      retryDelay: this.createDiscoverRetryFn(options)
+      retryDelay: this.createDiscoverRetryFn(retryOptions)
     });
   }
 
@@ -39,6 +39,7 @@ export class OpenIdClientFactory {
       delayAttemptMultipler: 2 * 1000,
       maxAttemptDelay: 30 * 1000,
     };
+
     if (typeof options.issuerDiscover === 'object') {
       retryOptions.maxAttempts = options.issuerDiscover.retry.maxAttempts ?? retryOptions.maxAttempts;
       retryOptions.delay = options.issuerDiscover.retry.delay ?? retryOptions.delay;

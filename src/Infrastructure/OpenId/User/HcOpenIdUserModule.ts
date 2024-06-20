@@ -1,7 +1,6 @@
 import { AppConfig } from '@hexancore/core';
-import { ConfigurableModuleBuilder, FactoryProvider, Module, RequestMethod, type InjectionToken, type MiddlewareConsumer, type NestModule, type Provider } from '@nestjs/common';
+import { ConfigurableModuleBuilder, FactoryProvider, Module, type InjectionToken, type NestModule, type Provider } from '@nestjs/common';
 import { HcSessionModule, MemorySessionStoreProvider, RedisSessionStoreProvider } from '../../Session';
-import { SessionMiddleware } from '../../Session/Http/SessionMiddleware';
 import { OpenIdClientFactory, type OpenIdClientFactoryOptions } from '../OpenIdClientFactory';
 import { OpenIdUserAppOptionsToken, OpenIdUserClientToken } from './Constants';
 import { OpenIdUserSessionData } from './Session';
@@ -15,11 +14,11 @@ const DEFAULT_CLIENT_SECRET_PATH = 'core.auth.openid.user.client';
 
 export interface OpenIdUserModuleConfig {
   client: {
-    issuerDiscover: string
+    issuerDiscover: string;
     clientId: string,
     clientSecretPath: string,
   },
-  app: StatefullOpenIdUserAppOptions
+  app: StatefullOpenIdUserAppOptions;
 }
 
 export interface OpenIdUserModuleExtras {
@@ -39,31 +38,36 @@ export function MemoryOpenIdSessionStoreProvider(): Provider {
 
 export const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN, OPTIONS_TYPE, ASYNC_OPTIONS_TYPE } =
   new ConfigurableModuleBuilder<object>()
-    .setExtras(DEFAULT_MODULE_EXTRAS, (definition, extras) => ({
-      ...definition,
-      imports: [
-        HcSessionModule.forRoot({
-          configPath: extras.configPath + '.app.session',
-          store: extras.sessionStore
-        })
-      ],
-      providers: [
-        ...definition.providers,
-        {
-          provide: MODULE_CONFIG_TOKEN,
-          inject: [AppConfig],
-          useFactory: (appConfig: AppConfig) => {
-            const configPath = extras.configPath ?? DEFAULT_MODULE_CONFIG_PATH;
-            const config = appConfig.config.getOrThrow<OpenIdUserModuleConfig>(configPath);
-            config.client.clientSecretPath = config.client.clientSecretPath ?? DEFAULT_CLIENT_SECRET_PATH;
-            return config;
-          }
-        },
-        StatefullOpenIdUserService,
-      ],
-      controllers: [StatefullOpenIdUserController],
-      global: extras.global
-    }),
+    .setExtras(DEFAULT_MODULE_EXTRAS, (definition, extras) => {
+      definition.providers = definition.providers ?? [];
+      const sessionModule = HcSessionModule.forRoot({
+        configPath: extras.configPath + '.app.session',
+        store: extras.sessionStore
+      });
+      return {
+        ...definition,
+        imports: [
+          sessionModule
+        ],
+        exports: [sessionModule],
+        providers: [
+          ...definition.providers,
+          {
+            provide: MODULE_CONFIG_TOKEN,
+            inject: [AppConfig],
+            useFactory: (appConfig: AppConfig) => {
+              const configPath = extras.configPath ?? DEFAULT_MODULE_CONFIG_PATH;
+              const config = appConfig.config.getOrThrow<OpenIdUserModuleConfig>(configPath);
+              config.client.clientSecretPath = config.client.clientSecretPath ?? DEFAULT_CLIENT_SECRET_PATH;
+              return config;
+            }
+          },
+          StatefullOpenIdUserService,
+        ],
+        controllers: [StatefullOpenIdUserController],
+        global: extras.global
+      };
+    },
     )
     .setClassMethodName('forRoot')
     .build();
@@ -95,7 +99,4 @@ const ClientProvider: FactoryProvider = {
   ]
 })
 export class HcOpenIdUserModule extends ConfigurableModuleClass implements NestModule {
-  public configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(SessionMiddleware).forRoutes({ path: 'user/public/auth/login', method: RequestMethod.GET });
-  }
 }

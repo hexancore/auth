@@ -2,7 +2,7 @@
 process.env.TZ = 'UTC';
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = '0';
 
-import { HcAppRedisModule, } from '@hexancore/cloud';
+import { HcAppRedisModule } from '@hexancore/cloud/redis';
 import { AppMeta, EnvAppMetaProvider } from '@hexancore/common';
 import { FastifyAdapterFactory, HcHttpModule, HcModule, UncaughtErrorCatcher, httpBootstrap } from '@hexancore/core';
 import { Global, Module } from '@nestjs/common';
@@ -14,7 +14,7 @@ import {
 } from '../../lib';
 import {
   TestOpenIdAppModule
-} from '../../lib/Test';
+} from '../../lib/Test/Infrastructure/OpenId/App';
 
 AppMeta.setProvider(EnvAppMetaProvider);
 

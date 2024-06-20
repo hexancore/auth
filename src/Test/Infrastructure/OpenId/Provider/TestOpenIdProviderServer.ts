@@ -113,10 +113,10 @@ export class TestOpenIdProviderServer {
   }
 
   public getBaseUrl(): string {
-    return this.options.issuer;
+    return this.options.issuer!;
   }
 
   public isHttps(): boolean {
-    return this.options.https;
+    return this.options.https!;
   }
 }

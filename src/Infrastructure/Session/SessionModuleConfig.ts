@@ -41,12 +41,7 @@ export interface SessionModuleConfig {
      * Number of seconds or in ISO8601 format after PT like: 7H, 3H30S, 50M
      */
   initialLifetime: string | number;
-  cookie: SessionCookieOptions & {
-    sign: {
-      enabled?: boolean;
-      secretPath?: string;
-    }
-  };
+  cookie: SessionCookieOptions
 }
 
 export interface SessionModuleExtras {
@@ -55,6 +50,6 @@ export interface SessionModuleExtras {
 }
 export const DEFAULT_INTERCEPTOR_PRIORITY = 1000000;
 export const DEFAULT_SESSION_MODULE_EXTRAS: SessionModuleExtras = {
-  store: null,
+  store: null as any,
   interceptorPriority: DEFAULT_INTERCEPTOR_PRIORITY,
 };

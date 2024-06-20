@@ -10,7 +10,7 @@ export abstract class SessionData implements JsonSerialize {
   /**
    * Tracks property modification
    */
-  public __modifiedProperties: Set<string>;
+  public __modifiedProperties?: Set<string>;
 
   public constructor() {
     this.__tracked = false;
@@ -49,7 +49,7 @@ export abstract class SessionData implements JsonSerialize {
    * @return true if entity has any property changes
    */
   public get __modified(): boolean {
-    return this.__modifiedProperties && this.__modifiedProperties.size > 0;
+    return this.__modifiedProperties !== undefined && this.__modifiedProperties.size > 0;
   }
 
   public __track(): void {
