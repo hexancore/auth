@@ -2,7 +2,7 @@ import { AR, Logger, OKA, getLogger, type AppError, type SAR } from '@hexancore/
 import { Controller, Get, Inject, Redirect, Req, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 
-import { AbstractController, RedirectResult } from '@hexancore/core';
+import { AbstractController, RedirectResult } from '@hexancore/core/http';
 import { AuthenticatedSessionGuard, HttpSessionService, ActiveSessionGuard, SessionRequestInjectorInterceptor, SessionService } from '../../../Session';
 import { OpenIdUserSessionData, type FReqWithOpenIdSession, type OpenIdAuthData, type OpenIdAuthRequestData } from '../Session';
 import { BASE_USER_MODULE_ROUTE, LOGIN_CALLBACK_ROUTE, LOGOUT_CALLBACK_ROUTE, StatefullOpenIdUserService } from './StatefullOpenIdUserService';

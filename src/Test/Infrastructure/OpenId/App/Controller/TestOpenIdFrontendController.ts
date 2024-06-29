@@ -1,5 +1,5 @@
 import { OK, type R } from "@hexancore/common";
-import { RedirectResult, type FRequest } from "@hexancore/core";
+import { RedirectResult, type FRequest } from "@hexancore/core/http";
 import { Controller, Get, Header, Req, UseInterceptors } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { SessionRequestInjectorInterceptor, type FReqWithSession, type OpenIdUserSessionData } from "../../../../../Infrastructure";

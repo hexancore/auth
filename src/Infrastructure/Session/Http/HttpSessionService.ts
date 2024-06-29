@@ -1,6 +1,6 @@
 import type { CookieSerializeOptions } from "@fastify/cookie";
-import { AppErrorCode, ERR, ERRA, INTERNAL_ERR, OK, OKA, getLogger, type AR, type InternalError, type Logger, type R, type StdErrors } from "@hexancore/common";
-import type { FResponse } from "@hexancore/core";
+import { AppErrorCode, ERR, ERRA, INTERNAL_ERR, LogicError, OK, OKA, getLogger, type AR, type Logger, type R } from "@hexancore/common";
+import type { FResponse } from "@hexancore/core/http";
 import { AuthSessionErrors } from "../AuthSessionErrors";
 import { Session } from "../Session";
 import type { SessionService } from "../SessionService";
@@ -48,6 +48,10 @@ export class HttpSessionService {
   }
 
   private extractSessionIdFromCookie(req: FReqWithSession<any>): R<{ renewCookieValue: boolean, sessionId: string; } | null, AuthSessionErrors<'session_cookie_invalid'>> {
+    if (!req.cookies) {
+      return OK(null);
+    }
+
     const cookieValue = req.cookies[this.cookieName];
     if (!cookieValue) {
       return OK(null);

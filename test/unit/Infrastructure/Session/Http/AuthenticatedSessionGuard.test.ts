@@ -3,9 +3,9 @@
  * @group unit
  */
 
-import { AuthenticatedSessionGuard, HttpSessionService, Session, ActiveSessionGuard, SessionState } from '@';
+import { AuthenticatedSessionGuard, HttpSessionService, Session } from '@';
 import { DateTime, OKA } from '@hexancore/common';
-import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing';
+import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing/http';
 import { mock, type M } from '@hexancore/mocker';
 import { UnauthorizedException } from '@nestjs/common';
 import { TestSessionData } from '@testhelper/Infrastructure/Session/TestSessionData';

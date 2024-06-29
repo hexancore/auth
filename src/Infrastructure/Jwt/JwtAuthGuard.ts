@@ -1,5 +1,5 @@
-import { AppError, AppErrorCode, EnumErrorTypeWrapper, InjectLogger, Logger, getLogger } from '@hexancore/common';
-import { FRequest } from '@hexancore/core';
+import { AppError, AppErrorCode, Logger, getLogger } from '@hexancore/common';
+import { FRequest } from '@hexancore/core/http';
 import { CanActivate, ExecutionContext, Inject, UnauthorizedException } from '@nestjs/common';
 import { JWTVerifyOptions, RemoteJWKSetOptions, createRemoteJWKSet, jwtVerify } from 'jose';
 import { JOSEError } from 'jose/errors';

@@ -1,8 +1,12 @@
 import { AppErrorCode, CurrentTime, ERR, LogicError } from '@hexancore/common';
-import { APP_ORDERED_INTERCEPTOR_GROUP_TOKEN, AppConfig, HttpOrderedInterceptorGroup } from '@hexancore/core';
-import { ConfigurableModuleBuilder, Global, Module, NestModule, type Provider } from '@nestjs/common';
+import { AppConfig } from '@hexancore/core';
+import { APP_ORDERED_INTERCEPTOR_GROUP_TOKEN, HttpOrderedInterceptorGroup } from '@hexancore/core/http';
+import { ConfigurableModuleBuilder, Global, Module, type OnModuleInit, type Provider } from '@nestjs/common';
+import { HttpAdapterHost } from '@nestjs/core';
+import type { FastifyAdapter } from '@nestjs/platform-fastify';
 import Validator from 'fastest-validator';
 import { HttpSessionService } from './Http';
+import { SessionResponseUpdaterInterceptor } from './Http/SessionResponseUpdaterInterceptor';
 import {
   DEFAULT_SESSION_MODULE_CONFIG_PATH,
   DEFAULT_SESSION_MODULE_EXTRAS,
@@ -14,7 +18,6 @@ import {
 } from './SessionModuleConfig';
 import { SessionService } from './SessionService';
 import { SESSION_STORE_TOKEN, type SessionStore } from './Store';
-import { SessionResponseUpdaterInterceptor } from './Http/SessionResponseUpdaterInterceptor';
 
 const v = new Validator();
 
@@ -49,7 +52,7 @@ const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } = new ConfigurableModule
       inject: [MODULE_OPTIONS_TOKEN, AppConfig],
       useFactory: (moduleOptions: SessionModuleOptions, appConfig: AppConfig) => {
         const configPath = moduleOptions.configPath ?? DEFAULT_SESSION_MODULE_CONFIG_PATH;
-        const config = appConfig.config.getOrThrow<SessionModuleConfig>(configPath);
+        const config = appConfig.getOrPanic<SessionModuleConfig>(configPath);
 
         const configValidation = v.compile(SessionConfigValidationSchema)(config);
         if (configValidation !== true) {
@@ -75,5 +78,17 @@ const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } = new ConfigurableModule
   ],
   exports: [SessionService, HttpSessionService],
 })
-export class HcSessionModule extends ConfigurableModuleClass implements NestModule {
+export class HcSessionModule extends ConfigurableModuleClass implements OnModuleInit {
+
+  public constructor(private adapterHost: HttpAdapterHost<FastifyAdapter>) {
+    super();
+  }
+
+  public onModuleInit(): void {
+    const hasCookiePlugin = this.adapterHost.httpAdapter.getInstance().hasPlugin('@fastify/cookie');
+    if (!hasCookiePlugin) {
+      throw new LogicError("HttpAppBootstrap cookie plugin is not registered. Enable it in HttpAppBootstrap options `adapter.stdPlugins.cookie: true`");
+    }
+  }
+
 }

@@ -1,5 +1,5 @@
 import { AR, ERR, OK, SAR, type R } from '@hexancore/common';
-import { FResponse, HttpGroupableInterceptor } from '@hexancore/core';
+import { FResponse, HttpGroupableInterceptor } from '@hexancore/core/http';
 import { HttpStatus } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Session } from '../Session';

@@ -4,7 +4,7 @@
 
 import { HttpSessionService, Session, ActiveSessionGuard} from '@';
 import { DateTime, ERRA, INTERNAL_ERROR, OKA } from '@hexancore/common';
-import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing';
+import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing/http';
 import { type M, mock } from '@hexancore/mocker';
 import { UnauthorizedException } from '@nestjs/common';
 import { TestSessionData } from '@testhelper/Infrastructure/Session/TestSessionData';

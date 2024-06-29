@@ -4,7 +4,7 @@
 
 import { Session, SessionData, SessionResponseUpdaterInterceptor, type HttpSessionService } from '@';
 import { DateTime, ERR, ERRA, OK, OKA } from '@hexancore/common';
-import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing';
+import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing/http';
 import { M, mock } from '@hexancore/mocker';
 
 describe(SessionResponseUpdaterInterceptor.constructor.name, () => {
