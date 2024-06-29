@@ -1,4 +1,4 @@
-import type { FRequest } from "@hexancore/core";
+import type { FRequest } from "@hexancore/core/http";
 import type { SessionData } from "../Data/SessionData";
 import type { Session } from "../Session";
 

@@ -1,14 +1,14 @@
 core:
   redis:
     host: 127.0.0.1
-    port: 20010
+    port: 20020
     enableReadyCheck: false
     keyPrefix: 'app:'
   auth:
     openid:
       user:
         client:
-          issuerDiscover: https://localhost:20012/oidc/.well-known/openid-configuration
+          issuerDiscover: https://localhost:20021/oidc/.well-known/openid-configuration
           clientId: test_client
           defaultMaxAge: 300
         app:

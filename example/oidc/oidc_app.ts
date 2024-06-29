@@ -4,9 +4,9 @@ process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = '0';
 
 import { HcAppRedisModule } from '@hexancore/cloud/redis';
 import { AppMeta, EnvAppMetaProvider } from '@hexancore/common';
-import { FastifyAdapterFactory, HcHttpModule, HcModule, UncaughtErrorCatcher, httpBootstrap } from '@hexancore/core';
+import { HcModule } from '@hexancore/core';
+import { HcHttpModule, HttpAppBootstrap } from '@hexancore/core/http';
 import { Global, Module } from '@nestjs/common';
-import { FastifyHttpsOptions } from 'fastify';
 import fs from 'fs';
 import {
   HcOpenIdUserModule,
@@ -21,7 +21,7 @@ AppMeta.setProvider(EnvAppMetaProvider);
 @Global()
 @Module({
   imports: [
-    HcModule.forRoot({}),
+    HcModule.forRoot(),
     HcHttpModule,
     HcAppRedisModule,
     HcOpenIdUserModule.forRoot({
@@ -33,11 +33,16 @@ AppMeta.setProvider(EnvAppMetaProvider);
 class AppModule {
 }
 
-const options = FastifyAdapterFactory.createDefaultOptions(new UncaughtErrorCatcher());
-const adapterOptions = options.adapter as FastifyHttpsOptions<any>;
-adapterOptions.https = {
-  key: fs.readFileSync('docker/dev/server.key'),
-  cert: fs.readFileSync('docker/dev/server.cert')
-};
-
-httpBootstrap({ mainModule: AppModule, swagger: AppMeta.get().isDev(), adapter: options });
+HttpAppBootstrap(AppModule, {
+  adapter: {
+    stdPlugins: {
+      cookie: true,
+    },
+    instanceOptions: {
+      https: {
+        key: fs.readFileSync('docker/dev/server.key'),
+        cert: fs.readFileSync('docker/dev/server.cert')
+      }
+    }
+  }
+});

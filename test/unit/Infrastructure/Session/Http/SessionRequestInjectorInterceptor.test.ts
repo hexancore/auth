@@ -3,8 +3,8 @@
  */
 
 import { Session, SessionData, SessionRequestInjectorInterceptor, SessionResponseUpdaterInterceptor, type HttpSessionService } from '@';
-import { DateTime, OK, OKA } from '@hexancore/common';
-import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing';
+import { DateTime, OKA } from '@hexancore/common';
+import { ExecutionContextTestHelper, MockHttpExecutionContext } from '@hexancore/core/testing/http';
 import { M, mock } from '@hexancore/mocker';
 import { firstValueFrom } from 'rxjs';
 

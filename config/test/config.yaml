@@ -1,6 +1,6 @@
 core:
   redis:
     host: 127.0.0.1
-    port: 20010
+    port: 20020
     enableReadyCheck: false
     keyPrefix: 'app:'

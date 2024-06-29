@@ -57,7 +57,7 @@ export const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN, OPTIONS_TYPE, ASYN
             inject: [AppConfig],
             useFactory: (appConfig: AppConfig) => {
               const configPath = extras.configPath ?? DEFAULT_MODULE_CONFIG_PATH;
-              const config = appConfig.config.getOrThrow<OpenIdUserModuleConfig>(configPath);
+              const config = appConfig.getOrPanic<OpenIdUserModuleConfig>(configPath);
               config.client.clientSecretPath = config.client.clientSecretPath ?? DEFAULT_CLIENT_SECRET_PATH;
               return config;
             }
@@ -76,10 +76,9 @@ const ClientProvider: FactoryProvider = {
   provide: OpenIdUserClientToken,
   inject: [AppConfig, MODULE_CONFIG_TOKEN, OpenIdClientFactory],
   useFactory: async (appConfig: AppConfig, config: OpenIdUserModuleConfig, clientFactory: OpenIdClientFactory) => {
-    const r = await appConfig.secrets.get(config.client.clientSecretPath).onOk((clientSecret) => {
-      const options: OpenIdClientFactoryOptions = { ...config.client, clientSecret: clientSecret.trim() };
-      return clientFactory.create(options);
-    });
+    const clientSecret = appConfig.getSecret(config.client.clientSecretPath);
+    const options: OpenIdClientFactoryOptions = { ...config.client, clientSecret: clientSecret.trim() };
+    const r = await clientFactory.create(options);
     r.panicIfError();
     return r.v;
   },

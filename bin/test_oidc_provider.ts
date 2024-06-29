@@ -47,7 +47,7 @@ function bootstrap(): Promise<void> {
 
   config.listen = {
     host: 'localhost',
-    port: 20012,
+    port: 20021,
     ...(config.listen ?? {})
   };
 

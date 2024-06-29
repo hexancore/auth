@@ -1,14 +1,13 @@
 import { FactoryProvider, Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuardOptionsToken } from './JwtAuthGuard';
-import { HcAppConfigModule } from '@hexancore/core';
+import { AppConfig, HcAppConfigModule } from '@hexancore/core';
 
 const JwtAuthGuardOptionsProvider: FactoryProvider = {
   provide: JwtAuthGuardOptionsToken,
-  useFactory: (config: ConfigService) => {
-    return config.getOrThrow('auth.jwt') ?? {};
+  useFactory: (config: AppConfig) => {
+    return config.getOrPanic('auth.jwt');
   },
-  inject: [ConfigService],
+  inject: [AppConfig],
 };
 
 @Module({
