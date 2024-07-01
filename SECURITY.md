@@ -14,7 +14,7 @@ We appreciate your efforts to responsibly disclose your findings and will make e
 
 ## Reporting Security Issues
 
-Please report security issues directly to security@hexancore.com. 
+Please report security issues directly to security@hexancore.dev. 
 You can expect to receive acknowledgement of your report within 24h. 
 If the issue is confirmed, we will release a patch as soon as possible in the next scheduled update cycle.
 
